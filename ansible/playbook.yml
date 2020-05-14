@@ -1,0 +1,10 @@
+-
+  name: Install prerequisits
+  hosts: all
+  become: yes
+  tasks:
+    -  name: Install docker
+       apt:
+         name: docker.io
+         state: present
+         update_cache: yes
