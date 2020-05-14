@@ -14,7 +14,6 @@
       loop:
         - apt-transport-https
         - ca-certificates
-        - curl
         - gnupg-agent
         - software-properties-common
 
@@ -40,3 +39,24 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
+
+- name: Open protocols and ports between the hosts
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Install firewall
+      apt:
+        name: firewalld
+        state: present
+    - name: Open necessary ports
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      loop:
+        - 2377/tcp
+        - 7946/tcp
+        - 7946/udp
+        - 4789/udp
+
