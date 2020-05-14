@@ -1,0 +1,26 @@
+- name: Initialize swarm mode on first manager
+  become: true
+  hosts: large
+  tasks:
+
+    - name: Initialize
+      docker_swarm:
+        state: present
+        advertise_addr: "{{ ansible_host }}"
+      register: swarm_info
+
+- name: Join other managers
+  become: true
+  vars:
+    token: "{{ hostvars['large']['swarm_info']['swarm_facts']['JoinTokens']['Manager'] }}"
+    first_manager_ip: "{{ hostvars['large']['ansible_host'] }}"
+  hosts: small
+  tasks:
+
+    - name: Join other manager
+      docker_swarm:
+        state: join
+        advertise_addr: "{{ ansible_host }}"
+        join_token: "{{ token }}"
+        remote_addrs: "{{ first_manager_ip }}"
+

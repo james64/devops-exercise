@@ -7,15 +7,21 @@
       apt:
         update_cache: yes
 
-    - name: Add packages to use https repository
+    - name: Add initial packages
       apt:
         name: "{{ item }}"
         state: present
       loop:
+        # docker instalation from standalon repository
         - apt-transport-https
         - ca-certificates
         - gnupg-agent
         - software-properties-common
+        # pip module
+        - python3
+        - python3-pip
+        - virtualenv
+        - python3-setuptools
 
     - name: Add docker's official gpg key
       apt_key:
@@ -40,23 +46,7 @@
         - docker-ce-cli
         - containerd.io
 
-- name: Open protocols and ports between the hosts
-  hosts: all
-  become: yes
-  tasks:
-
-    - name: Install firewall
-      apt:
-        name: firewalld
-        state: present
-    - name: Open necessary ports
-      firewalld:
-        port: "{{ item }}"
-        permanent: yes
-        state: enabled
-      loop:
-        - 2377/tcp
-        - 7946/tcp
-        - 7946/udp
-        - 4789/udp
+    - name: Install Python Docker SDK
+      pip:
+        name: docker
 

@@ -1,3 +1,5 @@
 large  ansible_host=64.227.123.223 ansible_user=dubovsky
+
+[small]
 small1 ansible_host=161.35.79.109  ansible_user=dubovsky
 small2 ansible_host=64.227.123.209 ansible_user=dubovsky
