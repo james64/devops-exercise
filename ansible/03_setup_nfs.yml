@@ -1,0 +1,65 @@
+- name: Setup NFS server
+  become: true
+  hosts: large
+  vars:
+    - nfs_path: "/mnt/nfs-data"
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    - name: Install NFS kernel
+      apt:
+        name: "nfs-kernel-server"
+        state: present
+    - name: Create data dir
+      file:
+        path: "{{ nfs_path }}"
+        state: directory
+        mode: 0777
+        owner: nobody
+        group: nogroup
+    - name: Allow nfs clients
+      lineinfile:
+        path: /etc/exports
+        state: present
+        insertafter: EOF
+        line: "{{ nfs_path }} {{ item }}(rw,sync,no_subtree_check)"
+      loop:
+        - "{{ hostvars['small1']['ansible_host'] }}"
+        - "{{ hostvars['small2']['ansible_host'] }}"
+    - name: Export shared directory
+      shell: "exportfs -a"
+    - name: Restart NFS
+      systemd:
+        name: "nfs-kernel-server"
+        state: reloaded
+        enabled: yes
+
+- name: Setup NFS clients
+  become: true
+  hosts: small
+  vars:
+    - nfs_path: "/mnt/nfs-data" # todo
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+    - name: Install NFS client
+      apt:
+        name: "nfs-common"
+        state: present
+    - name: Create mount point
+      file: 
+        path: "{{ nfs_path }}"
+        state: directory
+        mode: 0777
+        owner: nobody
+        group: nogroup
+    - name: Mount shared directory
+      mount:
+        path: "{{ nfs_path }}"
+        src: "{{ hostvars['large']['ansible_host'] }}:{{ nfs_path }}"
+        state: mounted
+        fstype: nfs
