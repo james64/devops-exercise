@@ -1,17 +1,18 @@
-version: '3'
+version: '3.7'
 
 services:
   traefik:
     image: traefik:v2.2
     deploy:
       labels:
+        - "traefik.enable=true"
         - "traefik.http.services.wtf.loadbalancer.server.port=80"
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--providers.docker.exposedbydefault=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       # tls
       - "--entrypoints.websecure.address=:443"
@@ -49,3 +50,43 @@ services:
         - "traefik.http.routers.whoami-sec.tls.certresolver=myresolver"
         - "traefik.http.routers.whoami-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
         - "traefik.http.routers.whoami-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    volumes:
+      - "/var/opt/gitlab/data:/var/opt/gitlab"
+      - "/var/opt/gitlab/logs:/var/log/gitlab"
+      - "/var/opt/gitlab/config:/etc/gitlab"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: "from_file('/omnibus_config.rb')"
+    configs:
+      - source: gitlab
+        target: /omnibus_config.rb
+    secrets:
+      - gitlab_root_password
+    deploy:
+      placement:
+        constraints:
+          - "node.hostname==jakub-dubovsky-large"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.gitlab.loadbalancer.server.port=80"
+        # http
+        #- "traefik.http.routers.gitlab.rule=Host(`gitlab.dubovsky.devops.klikuj.cz`)"
+        #- "traefik.http.routers.gitlab.entrypoints=web"
+        # tls
+        - "traefik.http.routers.gitlab-sec.rule=Host(`gitlab.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.gitlab-sec.entrypoints=websecure"
+        - "traefik.http.routers.gitlab-sec.tls=true"
+        - "traefik.http.routers.gitlab-sec.tls.certresolver=myresolver"
+        - "traefik.http.routers.gitlab-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
+        - "traefik.http.routers.gitlab-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
+
+configs:
+  gitlab:
+    file: ./gitlab.rb
+
+secrets:
+  gitlab_root_password:
+    file: ./gitlab_root_password
+
