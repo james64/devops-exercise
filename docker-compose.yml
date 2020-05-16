@@ -3,6 +3,9 @@ version: '3'
 services:
   traefik:
     image: traefik:v2.2
+    deploy:
+      labels:
+        - "traefik.http.services.wtf.loadbalancer.server.port=80"
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -10,17 +13,39 @@ services:
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=true"
       - "--entrypoints.web.address=:80"
+      # tls
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=jakub.dubovsky@seznam.cz"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=digitalocean"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.delaybeforecheck=0"
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
+    environment:
+      - "DO_AUTH_TOKEN_FILE=/mnt/nfs-data/digitalocean"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/mnt/nfs-data/letsencrypt:/letsencrypt:z"
+      - "/mnt/nfs-data/digitalocean:/mnt/nfs-data/digitalocean:ro"
 
   whoami:
     image: "containous/whoami"
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.whoami.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
-        - "traefik.http.routers.whoami.entrypoints=web"
         - "traefik.http.services.whoami.loadbalancer.server.port=80"
+        # http
+        #- "traefik.http.routers.whoami.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
+        #- "traefik.http.routers.whoami.entrypoints=web"
+        # tls
+        - "traefik.http.routers.whoami-sec.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.whoami-sec.entrypoints=websecure"
+        - "traefik.http.routers.whoami-sec.tls=true"
+        - "traefik.http.routers.whoami-sec.tls.certresolver=myresolver"
+        - "traefik.http.routers.whoami-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
+        - "traefik.http.routers.whoami-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
