@@ -1,20 +1,9 @@
 #!/bin/bash
 
-# todo add checks (root user, args)
-
 regToken="$1"
-runnerHostDir="/var/opt/gitlab-runner"
-
-docker run -d \
-    --name gitlab-runner \
-    --restart always \
-    -v $runnerHostDir:/etc/gitlab-runner \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    gitlab/gitlab-runner:latest
-
 
 docker run --rm \
-  -v $runnerHostDir:/etc/gitlab-runner \
+  -v /var/opt/gitlab-runner:/etc/gitlab-runner \
   gitlab/gitlab-runner \
   register \
   --non-interactive \

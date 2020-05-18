@@ -1,19 +1,38 @@
-image: docker:latest
+image: ubuntu:bionic
+
+variables:
+  network: 'kvp_net1'
 
 stages:
   - deploy
+
+before_script:
+  # setup ssh
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - 'eval $(ssh-agent -s)'
+  - 'echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d "\r" | ssh-add - > /dev/null'
+  - 'mkdir -p ~/.ssh'
+  - 'chmod 700 ~/.ssh'
+  - 'ssh-keyscan -t rsa $SSH_NODE >> ~/.ssh/known_hosts'
+
+clean_old:
+  stage: deploy
+  when: manual
+  script:
+    - 'ssh dubovsky@$SSH_NODE "sudo docker kill kong || /bin/true"'
+    - 'ssh dubovsky@$SSH_NODE "sudo docker rm kong || /bin/true"'
+    - 'ssh dubovsky@$SSH_NODE "sudo docker kill kong-database || /bin/true"'
+    - 'ssh dubovsky@$SSH_NODE "sudo docker rm kong-database || /bin/true"'
 
 deploy:
   stage: deploy
   when: manual
   script:
-    # setup ssh
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - 'eval $(ssh-agent -s)'
-    - 'echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d "\r" | ssh-add - > /dev/null'
-    - 'mkdir -p ~/.ssh'
-    - 'chmod 700 ~/.ssh'
-    - 'ssh-keyscan -t rsa $SSH_NODE >> ~/.ssh/known_hosts'
-    - 'alias runrem="ssh dubovsky@$SSH_NODE "'
-    # start kong-database
-    - 'runrem touch hello-from-gitlab'
+    # kong-database
+    - 'ssh dubovsky@$SSH_NODE sudo docker run -d --name kong-database --network=$network -e "POSTGRES_USER=kong" -e "POSTGRES_DB=kong" -e "POSTGRES_PASSWORD=kong" postgres:9.6'
+    # bootstrap database
+    - 'sleep 6'
+    - 'ssh dubovsky@$SSH_NODE sudo docker run --rm --network=$network -e "KONG_DATABASE=postgres" -e "KONG_PG_HOST=kong-database" -e "KONG_PG_PASSWORD=kong" kong:latest kong migrations bootstrap'
+    # start kong
+    - 'ssh dubovsky@$SSH_NODE sudo docker run -d --name kong --network=$network -e "KONG_DATABASE=postgres" -e "KONG_PG_HOST=kong-database" -e "KONG_PG_PASSWORD=kong" -e "KONG_PROXY_ACCESS_LOG=/dev/stdout" -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout" -e "KONG_PROXY_ERROR_LOG=/dev/stderr" -e "KONG_ADMIN_ERROR_LOG=/dev/stderr" -e "KONG_ADMIN_LISTEN=0.0.0.0:8001,0.0.0.0:8444\ ssl" -p 8000:8000 -p 8443:8443 -p 127.0.0.1:8001:8001 -p 127.0.0.1:8444:8444 kong:latest'
+

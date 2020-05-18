@@ -33,9 +33,13 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/mnt/nfs-data/letsencrypt:/letsencrypt:z"
       - "/mnt/nfs-data/digitalocean:/mnt/nfs-data/digitalocean:ro"
+    networks: 
+      - net1
 
   whoami:
     image: "containous/whoami"
+    networks:
+      - net1
     deploy:
       labels:
         - "traefik.enable=true"
@@ -53,6 +57,8 @@ services:
 
   gitlab:
     image: gitlab/gitlab-ce:latest
+    networks: 
+      - net1
     volumes:
       - "/var/opt/gitlab/data:/var/opt/gitlab"
       - "/var/opt/gitlab/logs:/var/log/gitlab"
@@ -81,6 +87,11 @@ services:
         - "traefik.http.routers.gitlab-sec.tls.certresolver=myresolver"
         - "traefik.http.routers.gitlab-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
         - "traefik.http.routers.gitlab-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
+
+networks:
+  net1:
+    driver: overlay
+    attachable: true
 
 configs:
   gitlab:
