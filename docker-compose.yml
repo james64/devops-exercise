@@ -82,12 +82,6 @@ services:
         - "traefik.http.routers.gitlab-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
         - "traefik.http.routers.gitlab-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
 
-  gitlab-runner:
-    image: gitlab/gitlab-runner:latest
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "/mnt/nfs-data/gitlab-runner/config:/etc/gitlab-runner"
-
 configs:
   gitlab:
     file: ./gitlab.rb
