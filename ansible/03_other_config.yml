@@ -63,3 +63,24 @@
         src: "{{ hostvars['large']['ansible_host'] }}:{{ nfs_path }}"
         state: mounted
         fstype: nfs
+
+- name: Create mount dirs for containers
+  become: true
+  hosts: large
+  tasks:
+    - name: Gitlab directories
+      file:
+        path: "{{ nfs_path }}"
+        state: directory
+        mode: 0766
+        owner: root
+        group: root
+      loop:
+        - /var/opt/gitlab/data
+        - /var/opt/gitlab/logs
+        - /var/opt/gitlab/config
+        - /var/opt/gitlab-runner
+    - name: Let's Encrypt directory for Traefik
+      file:
+        path: /mnt/nfs-data/letsencrypt/
+        state: directory
