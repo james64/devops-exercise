@@ -25,6 +25,11 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.kong.loadbalancer.server.port=8000"
+        - "traefik.http.middlewares.http_redirect.redirectscheme.scheme=https"
+        # http
+        - "traefik.http.routers.kong.rule=Host(`api.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.kong.middlewares=http_redirect"
+        # https
         - "traefik.http.routers.kong-sec.rule=Host(`api.dubovsky.devops.klikuj.cz`)"
         - "traefik.http.routers.kong-sec.entrypoints=websecure"
         - "traefik.http.routers.kong-sec.tls=true"

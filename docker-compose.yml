@@ -44,8 +44,10 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.whoami.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.http_redirect.redirectscheme.scheme=https"
         # http
-        #- "traefik.http.routers.whoami.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.whoami.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.whoami.middlewares=http_redirect"
         #- "traefik.http.routers.whoami.entrypoints=web"
         # tls
         - "traefik.http.routers.whoami-sec.rule=Host(`whoami.dubovsky.devops.klikuj.cz`)"
@@ -77,8 +79,10 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.gitlab.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.http_redirect.redirectscheme.scheme=https"
         # http
-        #- "traefik.http.routers.gitlab.rule=Host(`gitlab.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.gitlab.rule=Host(`gitlab.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.gitlab.middlewares=http_redirect"
         #- "traefik.http.routers.gitlab.entrypoints=web"
         # tls
         - "traefik.http.routers.gitlab-sec.rule=Host(`gitlab.dubovsky.devops.klikuj.cz`)"
