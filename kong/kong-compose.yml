@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  kong:
+    image: kong:latest
+    networks:
+      - kvp_net1
+    environment:
+      - "KONG_DATABASE=off"
+      - "KONG_DECLARATIVE_CONFIG=/kong_declarative.yml"
+      - "KONG_PROXY_ACCESS_LOG=/dev/stdout"
+      - "KONG_ADMIN_ACCESS_LOG=/dev/stdout"
+      - "KONG_PROXY_ERROR_LOG=/dev/stderr"
+      - "KONG_ADMIN_ERROR_LOG=/dev/stderr"
+      - "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl"
+    ports:
+      - 8000:8000
+      - 8443:8443
+      - 127.0.0.1:8001:8001
+      - 127.0.0.1:8444:8444
+    configs:
+      - source: kongConfig
+        target: /kong_declarative.yml
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.kong.loadbalancer.server.port=8000"
+        - "traefik.http.routers.kong-sec.rule=Host(`api.dubovsky.devops.klikuj.cz`)"
+        - "traefik.http.routers.kong-sec.entrypoints=websecure"
+        - "traefik.http.routers.kong-sec.tls=true"
+        - "traefik.http.routers.kong-sec.tls.certresolver=myresolver"
+        - "traefik.http.routers.kong-sec.tls.domains[0].main=dubovsky.devops.klikuj.cz"
+        - "traefik.http.routers.kong-sec.tls.domains[0].sans=*.dubovsky.devops.klikuj.cz"
+
+  whoami:
+    image: "containous/whoami"
+    networks:
+      - kvp_net1
+
+networks:
+  kvp_net1:
+    external: true
+
+configs:
+  kongConfig:
+    file: ./kong.yml
+

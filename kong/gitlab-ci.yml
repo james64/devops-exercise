@@ -1,8 +1,5 @@
 image: ubuntu:bionic
 
-variables:
-  network: 'kvp_net1'
-
 stages:
   - deploy
 
@@ -21,14 +18,12 @@ clean_old:
   when: manual
   script:
     - '$runcmd "sudo docker stack rm kong || /bin/true"'
-    - '$runcmd "sudo docker kill kong-database || /bin/true"'
-    - '$runcmd "sudo docker rm kong-database || /bin/true"'
 
 deploy:
   stage: deploy
   when: manual
   script:
     - 'dir=`$runcmd mktemp -d`'
-    - 'scp start_kong.sh kong.yml dubovsky@$SSH_NODE:$dir'
-    - '$runcmd sudo bash $dir/start_kong.sh'
+    - 'scp kong-compose.yml kong.yml dubovsky@$SSH_NODE:$dir'
+    - '$runcmd "cd $dir ; sudo docker stack deploy -c kong-compose.yml kong"'
 
