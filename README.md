@@ -1,5 +1,9 @@
 # devops-exercise
 
+* [https://whoami.dubovsky.devops.klikuj.cz/](https://whoami.dubovsky.devops.klikuj.cz/)
+* [https://gitlab.dubovsky.devops.klikuj.cz/](https://gitlab.dubovsky.devops.klikuj.cz/)
+* [https://api.dubovsky.devops.klikuj.cz/whoami/](https://api.dubovsky.devops.klikuj.cz/whoami/)
+
 # DNS zone configuration
 * A domain IP1
 * A domain IP2
