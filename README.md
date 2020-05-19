@@ -9,7 +9,7 @@
 ## How to
 
 1. Configure passwordless sudo on all nodes
- * Mainly to allow gitlab CI run cmds there
+    * Mainly to allow gitlab CI run cmds there
 1. Run `init-servers.sh` to install docker etc on servers
 1. Put DigitalOcean token into `/mnt/nfs-data/digitalocean` textfile
 1. Upload these to chosen folder on swarm manager node
