@@ -3,17 +3,7 @@ _format_version: "1.1"
 services:
   - name: whoami2
     url: http://kong_whoami
-
-routes:
-  - name: whoami2
-    service: whoami2
-    paths:
-      - "/whoami"
-    plugins:
-      - name: basic-auth
-
-consumers:
-  - username: klikuj
-    basicauth_credentials:
-      - username: klikuj
-        password: klikuj
+    routes:
+      - name: whoami2
+        paths:
+          - "/whoami"
