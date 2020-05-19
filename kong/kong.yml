@@ -7,3 +7,11 @@ services:
       - name: whoami2
         paths:
           - "/whoami"
+    plugins:
+      - name: basic-auth
+
+consumers:
+  - username: klikuj
+    basicauth_credentials:
+      - username: klikuj
+        password: klikuj
