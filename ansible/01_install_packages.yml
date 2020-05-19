@@ -22,6 +22,7 @@
         - python3-pip
         - virtualenv
         - python3-setuptools
+        - jq
 
     - name: Add docker's official gpg key
       apt_key:
