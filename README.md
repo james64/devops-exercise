@@ -1,7 +1,10 @@
 # devops-exercise
 
-What you need:
-* Ansible
+# DNS zone configuration
+* A domain IP1
+* A domain IP2
+* A domain IP3
+* CNAME *.domain domain
 
 ## How to
 
